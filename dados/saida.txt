@@ -1,0 +1,14 @@
+A saida quando o grafo foi printado na tela teve o seguinte resultado:
+
+defaultdict(
+                <class 'list'>,
+                {
+                    'Salinas': [{'Gmogol': 75}, {'Janauba': 121}],
+                    'Gmogol': [{'Salinas': 75}, {'Janauba': 96}, {'MOC': 106}, {'Bocaiuva': 123}],
+                    'Janauba': [{'Salinas': 121}, {'Gmogol': 96}, {'MOC': 120}, {'Januaria': 118}],
+                    'MOC': [{'Gmogol': 106}, {'Janauba': 120}, {'Januaria': 148}, {'Pirapora': 129}, {'Bocaiuva': 48}],
+                    'Bocaiuva': [{'Gmogol': 123}, {'Pirapora': 113}, {'MOC': 48}],
+                    'Januaria': [{'Janauba': 118}, {'MOC': 148}, {'Pirapora': 213}],
+                    'Pirapora': [{'Januaria': 213}, {'MOC': 129}, {'Bocaiuva': 113}]
+                }
+                )

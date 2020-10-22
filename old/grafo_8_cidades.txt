@@ -1,0 +1,15 @@
+Grafo:
+Vertices: 8
+Arestas: 12
+Salinas, Gmogol, 75
+Salinas, Janauba, 121
+Gmogol, Janauba, 96
+Gmogol, MOC, 106
+Gmogol, Bocaiuva, 123
+Janauba, MOC, 120
+Janauba, Januaria, 118
+Januaria, MOC, 148
+Januaria, Pirapora, 213
+Pirapora, MOC, 129
+Pirapora, Bocaiuva, 113
+Bocaiuva, MOC, 48
