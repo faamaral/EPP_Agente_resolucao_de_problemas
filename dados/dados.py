@@ -37,8 +37,23 @@ class Arquivo:
         # retorna a estrutura do grafo a ser usada na classe estado
         return grafo
 
-    def desestruturar(dict):
+    # def desestruturar(dict):
+    #     for chave, valor in dict.items():
+    #         cidade = chave
+    #         list = []
+    #         tupla = tuple()
+    #         for k in valor:
+    #             dic = k
+    #             for key, value in dic.items():
+    #                 cidade1 = key
+    #                 peso = value
+    #                 tupla = (cidade1, peso)
+    #                 list.append(tupla)
+    #         e = Estado(cidade, list)
+    #         print(e)
 
+    def desestruturar(dict):
+        e = Estado()
         for chave, valor in dict.items():
             cidade = chave
             list = []
@@ -50,15 +65,16 @@ class Arquivo:
                     peso = value
                     tupla = (cidade1, peso)
                     list.append(tupla)
-
-            Estado(cidade, list)
+            e.nome = cidade
+            e.lista_estados = list
 
 
 if __name__ == '__main__':
 
     grafo = Arquivo.extrair_dados('grafo_8_cidades.txt')
     Arquivo.desestruturar(grafo)
-    print(grafo)
+
+    #print(grafo)
 
 
 
