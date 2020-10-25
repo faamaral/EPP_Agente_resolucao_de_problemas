@@ -1,33 +1,52 @@
 
+# Arquivo: espaco_estado.py
 class Espaco_de_Estados(object):
 
     def __init__(self, grafo_estados = None):
-
+        '''
+        Essa classe tratará o espaço de estados como um dicionário \
+        onde receberá um dicionário, se nada for passado ao construtor \
+        será criado um dicionário vazio.
+        Caso contrario a classe receberá o grafo extraido do arquivo.
+        '''
         if grafo_estados == None:
             grafo_estados = {}
         self.espaco_de_estados = grafo_estados
-    '''
-        Retorna a lista de cidades
-    '''
+
     def get_cidades(self):
+        '''
+        Retorna a lista de cidades
+        '''
         return [self.espaco_de_estados.keys()]
         # ou return list(self.espaco_de_estados)
 
-    def visinhancas(self):
-        return self.monta_visinhanca()
+    def get_vizinhancas(self):
+        '''
+        Retorna uma lista de vizinhanças, ou seja, todas as arestas do grafo
+        '''
+        return self.monta_vizinhanca()
 
-    def visinhancas_com_peso(self):
-        return self.monta_visinhaca_com_peso()
-    '''
-        Adiciona uma nova cidade aspaço de estados
-        A principio ela fica sem cidades visinhas
-    '''
+    def get_vizinhancas_com_peso(self):
+        '''
+        Retorna uma lista de vizinhanças com as distancias, ou seja, todas as arestas do grafo + peso
+        '''
+        return self.monta_vizinhaca_com_peso()
+
     def add_cidade(self, vertice):
+        '''
+        Adiciona uma nova cidade ao espaço de estados
+        A principio ela fica sem cidades vizinhas
+        '''
         if vertice not in self.espaco_de_estados:
             self.espaco_de_estados[vertice] = []
 
-    def add_visinhanca(self, aresta):
-        aresta = set(aresta) # Cria um conjunto de arestas
+    def add_vizinhanca(self, aresta):
+        '''
+        Adiciona uma nova aresta de cidades no espaço de estados
+        :param aresta: pode ser uma lista, tupla ou conjunto contendo as cidades e a distancia entre elas
+        :return: None
+        '''
+        aresta = set(aresta)
 
         (cidade1, cidade2, peso) = tuple(aresta)
 
@@ -36,28 +55,42 @@ class Espaco_de_Estados(object):
         else:
             self.espaco_de_estados[cidade1] = [{cidade2: int(peso)}]
 
-    def monta_visinhanca(self):
-
+    def monta_vizinhanca(self):
+        '''
+        Esse método percorre o grafo e cria uma lista com das vizinhanças entre as cidades
+        :return: a lista de vizinhos
+        '''
         borda = []
 
-        for cidade, visinho in self.espaco_de_estados.items():
-            for k in visinho:
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
                 for c, p in k.items():
                     if {c, cidade} not in borda:
                         borda.append({cidade, c})
         return borda
 
-    def monta_visinhaca_com_peso(self):
+    def monta_vizinhaca_com_peso(self):
+        '''
+        cria a lista de vizinhos, mas acrescentando a distancia entre cada uma
+        :return: lista de vizinhos
+        '''
         borda = []
 
-        for cidade, visinho in self.espaco_de_estados.items():
-            for k in visinho:
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
                 for c, p in k.items():
                     if {c, cidade, p} not in borda:
-                        borda.append({cidade, c, p})
+                        borda.append((cidade, c, p))
         return borda
 
     def encontrar_caminho(self, inicio, fim, caminho=None):
+        '''
+        Método auxiliar para obter o percurso de um cidade a outra
+        :param inicio: cidade inicial
+        :param fim: cidade objetivo
+        :param caminho: lista com as cidades que foram visitadas até chegar no destino
+        :return: o caminho que foi percorrido
+        '''
         if caminho==None:
             caminho = []
 
@@ -76,13 +109,21 @@ class Espaco_de_Estados(object):
         return None
 
     def encontrar_caminho_com_custo(self, inicio, fim, caminho=None, peso=0):
+        '''
+        Método auxiliar para obter o percurso de um cidade a outra e a distancia percorrida
+        :param inicio: cidade de partida
+        :param fim: cidade objetivo
+        :param caminho: percurso percorrido
+        :param peso: distancia percorrida
+        :return: o caminho + custo ou none caso falha
+        '''
         if caminho == None:
             caminho = []
         cidades = self.espaco_de_estados
         caminho = caminho + [inicio]
         custo = peso
         if inicio == fim:
-            return caminho
+            return (caminho, custo)
         if inicio not in cidades:
             return None
         for cidade in cidades[inicio]:
@@ -90,20 +131,25 @@ class Espaco_de_Estados(object):
                 if c not in caminho:
                     caminho_extendido = self.encontrar_caminho_com_custo(c, fim, caminho, custo+v)
                     if caminho_extendido:
-                        custo_caminho = {
-                            'Caminho': caminho_extendido,
-                            'Custo': custo
-                        }
+                        return caminho_extendido
         return None
 
     def __repr__(self):
+        '''
+        representação do objeto como string
+        :return: o objeto em formato string
+        '''
         return f'{self.espaco_de_estados}'
 
     def __str__(self):
+        '''
+        Representação personalizada do objeto
+        :return: o objeto como string de forma mais legível
+        '''
         string = 'Cidades: '
         for cidades in self.espaco_de_estados:
             string += str(cidades) + ' '
-        string += '\nVizinhancas: '
+        string += '\nVizinhanças: '
         for arestas in self.monta_visinhanca():
             string += str(arestas) + ' '
         return string

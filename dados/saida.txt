@@ -11,4 +11,4 @@ defaultdict(
                     'Januaria': [{'Janauba': 118}, {'MOC': 148}, {'Pirapora': 213}],
                     'Pirapora': [{'Januaria': 213}, {'MOC': 129}, {'Bocaiuva': 113}]
                 }
-                )
+            )

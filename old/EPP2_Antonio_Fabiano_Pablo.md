@@ -6,99 +6,346 @@
 
 #### 1. Linguagem e IDE utilizadas
    
-Nesta segunda parte do exercício continuamos a utilizar a linguagem python juntamente com o pycharm pelos mesmo motivos ditos na parte 1 deste exercício
+Nesta segunda parte do exercício continuamos a utilizar a linguagem **Python** juntamente com o Ambiente de Desenvolvimento Integrado disponibilizado pela *JetBrains*, o **Pycharm**.
+
+Este documento foi escrito utilizando um arquivo e sintaxe *Markdown* e sua conversão para arquivo *pdf* foi realizada utilizando uma extensão do *Microsoft Visual Studio Code* chamada **Markdown PDF**.
    
 #### 2. Espaço de estados
 
-Para fazer essa parte do exercício, baseamos nas definições e algoritmos disponibilizados nas *videoaulas* e no livro *Inteligência Artificial, 3°ed, Russel e Norvig*, então explicaremos o Espaço de estados apresentando conceitos e exemplo de implementação.
+Nossa representação de espaço de estados se fundamenta em uma classe python denominada `Espaco_de_estados`, essa classe possui um atributo `espaco_de_estados` ao qual representa um grafo estruturado como um dicionário python, onde cada cidade teria uma lista de cidades vizinhas com a distância em relação a elas.
 
+A seguir detalharemos um pouco do funcionamento da classe e as funcionalidades dos seus métodos.
 
-**Estados:** O estado é determinado pela "posição" do agente (ponto inicial) e o objetivo (ponto final). O agente pode está entre _n_ posições e cada uma pode ter _n_ caminhos possíveis, desse modo, temos `n*n^n` estados do mundo possíveis.
+**Atributo - espaco_de_estados:** O espaço de estados pode ser interpretado como uma grafo, onde os vértices são os estados e as arestas são as ações.
+Com isso, o atributo faz jus ao seu nome e representa de fato um espaço de estados, pois em nossa implementação ele receberá um grafo através de seu construtor e a classe poderá dependendo da necessidade retornar a lista de cidades e uma lista de vizinhos.
 
-> Para um agente que quer encontrar o menor caminho em entre cidade, implementamos o espaço de estados através de um grafo, onde cada vértice é um estado e seus adjacentes são os próximos estados possíveis.
+> Nós pressupomos que o grafo a ser passado pelo arquivo será um dicionário python, então se houver algum erro na extração dos dados no arquivo será criado um objeto do tipo dicionário vazio.
 
-    self.grafo = Arquivo.extrair_dados(nome_arquivo)
+    class Espaco_de_Estados(object):
+        def __init__(self, grafo_estados = None):
+            if grafo_estados == None:
+                grafo_estados = {}
+            self.espaco_de_estados = grafo_estados
 
-- Os pequenos trechos de código abaixo dos conceitos são apenas para exemplificar algoritmicamente cada conceito, e serão apresentados em sua classe completa mais adiante.
+- Os pequenos trechos de código apresentados aqui serão mostrados de maneira completa formando a classe `Espaco_de_Estado` mais adiante.
 
-**Estado inicial:** Qualquer estado pode ser escolhido para se o estado inicial, sendo definido a partir de um vértice do grafo.
+**Lista de cidades:** Caso necessário podemos obter a lista das cidades presentes no grafo através do método `get_cidades`.
 
-> Continuando com o agente que quer encontrar o melhor caminho, seu estado inicial será definido a partir de uma cidade (vértice) qualquer existente no grafo.
+> Retornará uma lista dos vértices extraídos do dicionário, note que os vértices ná lista de vizinhos não são incluídos.
 
-    self.cidade_inicial = self.grafo[cidade_inicial]
+    def get_cidades(self):
+        return [self.espaco_de_estados.keys()]
 
-**Ações:** Acontecem conforme a decisão definida no espaço de estados, podendo variar entre (Tomando um agente aspirador de pó como exemplo) Direita, Esquerda, Aspira, Não faz nada.
+**Lista de vizinhanças (Arestas):** Caso seja necessário utilizar uma lista de vizinhanças presentes no grafo, pode ser obtida através do método `get_visinhanca`.
 
-> No nosso agente, a ação a ser tomada é ir para uma cidade vizinha caso ela não seja a cidade pretendida na _formulação do problema_ ou parar caso o objetivo foi alcançado.
+> Ela utiliza de um método que será explicado mais adiante para retornar a lista dos vizinhos.
 
-    # Retorna uma lista par (Ação, Resultado da ação) a partir do estado atual
-    def estados_sucessores(self, estado):
-        return [(sucessor, sucessor) for sucessor in self.grafo.get(estado).keys()]
+    def get_vizinhancas(self):
+        return self.monta_vizinhanca()
 
-**Teste de objetivo:** Verifica se o estado atual do agente é o estado ao qual ele quer chegar.
+> Caso precise também do peso (distancia) entre as cidades, poderá-se utilizar do método `get_vizinhaca_com_peso` que retornará uma lista com todos o vizinhos mais a distancia entre eles.
 
-> No nosso caso, partindo de salinas em direção a montes claros, se a cidade atual for montes claros ele cumpriu o seu papel.
+    def get_vizinhancas_com_peso(self):
+        return self.monta_vizinhaca_com_peso()
 
-    def verifica_objetivo(self, estado_atual):
-        if estado_atual == self.objetivo:
-            return True
-        return False
+**Adicionar uma nova cidade:** Caso ocorra algum erro para ler o arquivo e por isso, o atributo `espaco_de_estados` seja definido como um dicionário vazio, podemos adicionar as cidades manualmente ao espaço de estados através do método `add_cidade`.
 
-**Custo do caminho:** A soma dos pesos de todos os saltos (ações) até chegar ao objetivo. Varia de acordo ao ponto inicial e o objetivo.
+> também pode ser adicionada a um grafo já preenchido com cidades, nesse caso, não possuiria arestas a principio.
 
-> O custo do caminho do nosso agente será a soma das distancias das cidades visitadas partindo da inicial até a de destino
+    def add_cidade(self, vertice):
+        if vertice not in self.espaco_de_estados:
+            self.espaco_de_estados[vertice] = []
 
-    def custo_caminho(self, custo_parcial, A, B):
-        return custo_parcial + (self.grafo.get(A, B) or infinity)
+**Adicionar uma nova vizinhança (Aresta):** Assim como podemos adicionar uma nova cidade, também podemos adicionar novos vizinhos, para isso precisamos dos nomes das cidades e da distancia entre elas.
 
-##### Implementação simples de um espaço de estados
+> Pode receber como parâmetro uma tupla, lista ou um conjunto de dados contendo os nomes das cidades e a distancia.
+
+    def add_vizinhanca(self, aresta):
+        aresta = set(aresta)
+        (cidade1, cidade2, peso) = tuple(aresta)
+        if cidade1 in self.espaco_de_estados:
+            self.espaco_de_estados[cidade1].append({cidade2: int(peso)})
+        else:
+            self.espaco_de_estados[cidade1] = [{cidade2: int(peso)}]
+
+**"Montar" vizinhanças:** Como vimos, podemos obter a lista de todos os vizinhos presentes no grafo, conseguimos obtê-la graças ao método `monta_vizinhanca` que percorre todo o espaço de estados e adiciona as cidades que possuem arestas entre si em uma lista de tuplas.
+
+> O processo de varredura do dicionário é bem interessante, primeiro obtemos a chave, como o valor é uma lista de dicionários, temos que percorrer essa lista pegando as chaves que são as cidades adjacentes.
+
+    def monta_vizinhanca(self):
+        borda = []
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
+                for c, p in k.items():
+                    if {c, cidade} not in borda:
+                        borda.append((cidade, c))
+        return borda
+
+> Para fazer o mesmo processo, mas desta vez adicionando a distancia. Podemos utilizar a `monta_vizinhanca_com_peso` que é uma versão modificada do método anterior, acrescentando a distancia na tupla.
+
+    def monta_vizinhaca_com_peso(self):
+        borda = []
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
+                for c, p in k.items():
+                    if {c, cidade, p} not in borda:
+                        borda.append((cidade, c, p))
+        return borda
+
+**Encontrando caminhos:** Criamos um método auxiliar para que possamos obter o percurso saindo da cidade inicial até a cidade pretendida.
+
+> Ela retornará uma lista com as cidades visitadas até o destino caso finalize com êxito.
+
+    def encontrar_caminho(self, inicio, fim, caminho=None):
+        if caminho==None:
+            caminho = []
+        cidades = self.espaco_de_estados
+        caminho = caminho+[inicio]
+        if inicio == fim:
+            return caminho
+        if inicio not in cidades:
+            return None
+        for cidade in cidades[inicio]:
+            for c in cidade.keys():
+                if c not in caminho:
+                    caminho_extendido = self.encontrar_caminho(c, fim, caminho)
+                    if caminho_extendido:
+                        return caminho_extendido
+        return None
+
+> Para obter o caminho mais a distancia percorrida, podemos utilizar o método `encontrar_caminho_com_custo` que retornará uma tupla com caminho e custo.
+
+    def encontrar_caminho_com_custo(self, inicio, fim, caminho=None, peso=0):
+        if caminho == None:
+            caminho = []
+        cidades = self.espaco_de_estados
+        caminho = caminho + [inicio]
+        custo = peso
+        if inicio == fim:
+            return (caminho, custo)
+        if inicio not in cidades:
+            return None
+        for cidade in cidades[inicio]:
+            for c, v in cidade.items():
+                if c not in caminho:
+                    caminho_extendido = self.encontrar_caminho_com_custo(c, fim, caminho, custo+v)
+                    if caminho_extendido:
+                        return caminho_extendido
+        return None
+
+**Representando o objeto da classe como string:** Para recebermos informações de entendimento mais fácil na utilização da classe, sobrescrevemos os dois métodos python para representar objetos da classe como string.
+
+> O método `__repr__(self):` retorna o conteúdo dos atributos de classes como strings, podendo ter texto personalizado.
+
+    def __repr__(self):
+        return f'{self.espaco_de_estados}'
+
+> O `__str__(self):` funciona de modo semelhante, mas aqui nós a usamos para apresentar o espaço de estados com a lista das cidades e das arestas.
+
+    def __str__(self):
+        string = 'Cidades: '
+        for cidades in self.espaco_de_estados:
+            string += str(cidades) + ' '
+        string += '\nVizinhanças: '
+        for arestas in self.monta_visinhanca():
+            string += str(arestas) + ' '
+        return string
+
+ **# Implementação da classe Espaco_de_Estados**
 
 ```python
-# Arquivo: estado.py
 
-from dados import Arquivo
+# Arquivo: espaco_estado.py
 
-class Estado(object):
+class Espaco_de_Estados(object):
 
-    def __init__(self, cidade_inicial, objetivo, nome_arquivo):
-        self.grafo = Arquivo.extrair_dados(nome_arquivo)
-        self.cidade_inicial = self.grafo[cidade_inicial]
-        self.objetivo = self.grafo[objetivo]
+    def __init__(self, grafo_estados = None):
+        '''
+        Essa classe tratará o espaço de estados como um dicionário, \
+        onde receberá um dicionário vindo do método que extrai os \
+        dados do arquivo, se nada for passado ao construtor será \
+        criado um dicionário vazio.
+        Caso contrario a classe receberá o grafo extraído do arquivo.
+        '''
+        if grafo_estados == None:
+            grafo_estados = {}
+        self.espaco_de_estados = grafo_estados
 
-    def estados_sucessores(self, estado):
-        return [(sucessor, sucessor) for sucessor in self.grafo.get(estado).keys()]
+    def get_cidades(self):
+        '''
+        Retorna a lista de cidades
+        '''
+        return [self.espaco_de_estados.keys()]
+        # ou return list(self.espaco_de_estados)
 
-    def verifica_objetivo(self, estado_atual):
-        if estado_atual == self.objetivo:
-            return True
-        return False
+    def get_vizinhancas(self):
+        '''
+        Retorna uma lista de vizinhanças, ou seja, todas as arestas do grafo
+        '''
+        return self.monta_vizinhanca()
 
-    '''
-        recebe o custo até o estado anterior, a cidade atual e o resultante da ação
-        retorna a soma entre o custo do estado anterior e o custo do resultado da ação corrente
-    '''
-    def custo_caminho(self, custo_parcial, A, B):
-        return custo_parcial + (self.grafo.get(A, B) or infinity)
+    def get_vizinhancas_com_peso(self):
+        '''
+        Retorna uma lista de vizinhanças com as distancias, ou seja, todas as arestas do grafo + peso
+        '''
+        return self.monta_vizinhaca_com_peso()
 
+    def add_cidade(self, vertice):
+        '''
+        Adiciona uma nova cidade ao espaço de estados
+        A principio ela fica sem cidades vizinhas
+        '''
+        if vertice not in self.espaco_de_estados:
+            self.espaco_de_estados[vertice] = []
+
+    def add_vizinhanca(self, aresta):
+        '''
+        Adiciona uma nova aresta de cidades no espaço de estados
+        :param aresta: pode ser uma lista, tupla ou conjunto contendo as cidades e a distancia entre elas
+        :return: None
+        '''
+        aresta = set(aresta)
+
+        (cidade1, cidade2, peso) = tuple(aresta)
+
+        if cidade1 in self.espaco_de_estados:
+            self.espaco_de_estados[cidade1].append({cidade2: int(peso)})
+        else:
+            self.espaco_de_estados[cidade1] = [{cidade2: int(peso)}]
+
+    def monta_vizinhanca(self):
+        '''
+        Esse método percorre o grafo e cria uma lista com as vizinhanças entre as cidades
+        :return: a lista de vizinhos
+        '''
+        borda = []
+
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
+                for c, p in k.items():
+                    if {c, cidade} not in borda:
+                        borda.append({cidade, c})
+        return borda
+
+    def monta_vizinhaca_com_peso(self):
+        '''
+        cria a lista de vizinhos, mas acrescentando a distancia entre cada uma
+        :return: lista de vizinhos
+        '''
+        borda = []
+
+        for cidade, vizinho in self.espaco_de_estados.items():
+            for k in vizinho:
+                for c, p in k.items():
+                    if {c, cidade, p} not in borda:
+                        borda.append((cidade, c, p))
+        return borda
+
+    def encontrar_caminho(self, inicio, fim, caminho=None):
+        '''
+        Método auxiliar para obter o percurso de um cidade a outra
+        :param inicio: cidade inicial
+        :param fim: cidade objetivo
+        :param caminho: lista com as cidades que foram visitadas até chegar no destino
+        :return: o caminho que foi percorrido
+        '''
+        if caminho==None:
+            caminho = []
+
+        cidades = self.espaco_de_estados
+        caminho = caminho+[inicio]
+        if inicio == fim:
+            return caminho
+        if inicio not in cidades:
+            return None
+        for cidade in cidades[inicio]:
+            for c in cidade.keys():
+                if c not in caminho:
+                    caminho_extendido = self.encontrar_caminho(c, fim, caminho)
+                    if caminho_extendido:
+                        return caminho_extendido
+        return None
+
+    def encontrar_caminho_com_custo(self, inicio, fim, caminho=None, peso=0):
+        '''
+        Método auxiliar para obter o percurso de um cidade a outra e a distancia percorrida
+        :param inicio: cidade de partida
+        :param fim: cidade objetivo
+        :param caminho: percurso percorrido
+        :param peso: distancia percorrida
+        :return: o caminho + custo ou none caso falha
+        '''
+        if caminho == None:
+            caminho = []
+        cidades = self.espaco_de_estados
+        caminho = caminho + [inicio]
+        custo = peso
+        if inicio == fim:
+            return (caminho, custo)
+        if inicio not in cidades:
+            return None
+        for cidade in cidades[inicio]:
+            for c, v in cidade.items():
+                if c not in caminho:
+                    caminho_extendido = self.encontrar_caminho_com_custo(c, fim, caminho, custo+v)
+                    if caminho_extendido:
+                        return caminho_extendido
+        return None
+
+    def __repr__(self):
+        '''
+        representação do objeto como string
+        :return: o objeto em formato string
+        '''
+        return f'{self.espaco_de_estados}'
+
+    def __str__(self):
+        '''
+        Representação personalizada do objeto
+        :return: o objeto como string de forma mais legível
+        '''
+        string = 'Cidades: '
+        for cidades in self.espaco_de_estados:
+            string += str(cidades) + ' '
+        string += '\nVizinhanças: '
+        for arestas in self.monta_visinhanca():
+            string += str(arestas) + ' '
+        return string
 ```
 
 #### 3. Extração das informações do arquivo e preenchimento do Grafo (Espaço de estados)
 
-Para extrair os dados do arquivo de texto, criamos a `class Arquivo:` com um único método `def extrair_dados(nome_arquivo):` que recebe o arquivo extrai os dados e devolve a representação de um grafo em uma lista de adjacências.
+Para extrair os dados do arquivo de texto, criamos a `class Arquivo:` com um único método `def extrair_dados(nome_arquivo):` que recebe o arquivo, extrai os dados e devolve a representação de um grafo em uma lista de adjacências.
     
-O grafo retornando poderá ser atribuído a uma classe que representará o espaço de estados, ex: `self.grafo = Arquivo.extrair_dados(nome_arquivo)`.
+O método `extrair_dados(nome_arquivo)` devolve a representação do grafo como uma estrutura de dados do python chamada _dicionário_, onde as chaves são vértices e os valores são uma lista de vértices adjacentes com o peso da aresta.
     
-Escolhemos preencher o 'grafo de estados' usando uma estrutura como *dicionário* por que é uma maneira mais simples ao nosso ver, e assim pode ser usado em algoritmos de busca diretamente.
+Optamos por usar uma estrutura como *dicionário* para extrair as informações do arquivo e preenchimento do espaço de estados por ser uma maneira mais simples ao nosso ver, e assim nos possibilitar o uso em algoritmos de busca diretamente.
     
-Na estrutura utilizada o 'grafo de estados' ficaria da seguinte forma:
+Na estrutura utilizada o 'espaço de estados' ficaria da seguinte forma:
     
 ```json
 {
-    'Vertice': [{'Vertice1': poso1}, {'VerticeN': pesoN}]
+    'Cidade': [{'vizinho1': distancia1}, {'VizinhoN': distanciaN}]
 } 
 ```
 
-Onde `'Vertice'` é tomado como o estado atual, e os `{'VerticeN': pesoN}` são os estados acessíveis a partir dele sendo `pesoN` o custo para chegar do estado `'Vertice'` a `'VerticeN'`
+Onde `'Cidade'` é tomado como o estado atual, e os `{'VizinhoN': pesoN}` são os estados acessíveis a partir dele sendo `pesoN` o custo para chegar do estado `'Cidade'` a `'VizinhoN'`
+
+Em um teste feito quanto a extração dos dados do arquivo e o retorno do método `extrair_dados`, temos a seguinte saída:
+
+    defaultdict
+    (
+        <class 'list'>,
+            {
+                'Salinas': [{'Gmogol': 75}, {'Janauba': 121}],
+                'Gmogol': [{'Salinas': 75}, {'Janauba': 96}, {'MOC': 106}, {'Bocaiuva': 123}],
+                'Janauba': [{'Salinas': 121}, {'Gmogol': 96}, {'MOC': 120}, {'Januaria': 118}],
+                'MOC': [{'Gmogol': 106}, {'Janauba': 120}, {'Januaria': 148}, {'Pirapora': 129}, {'Bocaiuva': 48}],
+                'Bocaiuva': [{'Gmogol': 123}, {'Pirapora': 113}, {'MOC': 48}],
+                'Januaria': [{'Janauba': 118}, {'MOC': 148}, {'Pirapora': 213}],
+                'Pirapora': [{'Januaria': 213}, {'MOC': 129}, {'Bocaiuva': 113}]
+            }
+    )
    
 A seguir veremos a implementação da classe Arquivo.
    
@@ -112,32 +359,43 @@ from collections import defaultdict
 class Arquivo:
     
     def extrair_dados(nome_arquivo):
-        #coloca os dados do arquivo em um dicionário
-        #{chave: [valores]}
+        '''
+        coloca os dados do arquivo em um dicionário {chave: [valores]}
+        '''
         grafo = defaultdict(list)
-    
-        #abre o arquivo com fechamento automático após o
-        #fim do bloco with
+        '''
+        Abre o arquivo com fechamento automático após o fim do bloco with
+        '''
         with open(os.path.abspath(nome_arquivo), 'r') as file:
-            file.readline() # lê a primeira linha e descarta
-    
-            # Também é descartado pois não é necessário em dicionário
+            '''
+            lê a primeira linha e descarta
+            '''
+            file.readline()
+            '''
+            Também é descartado pois não é necessário com o uso de dicionário
+            '''
             quant_v = file.readline().strip().split('VERTICES: ')
             quant_a = file.readline().strip().split('ARESTAS: ')
-    
-            # transforma as linhas restantes em uma lista
+            '''
+            transforma as linhas restantes em uma lista
+            '''
             linhas_rest = file.readlines()
             for linha in linhas_rest:
-                #divide a linha em um 'array' com três posições
+                '''
+                divide a linha em um 'array' com três posições
+                '''
                 line = linha.strip().split(', ')
     
                 cidade1 = line[0]
                 cidade2 = line[1]
                 custo= line[2]
-    
-                #cria uma espécie de lista de adjacências no grafo
+                '''
+                cria uma espécie de lista de adjacências no grafo
+                '''
                 grafo[cidade1].append({cidade2: int(custo)})
                 grafo[cidade2].append({cidade1: int(custo)})
-        # retorna a estrutura do grafo a ser usada na classe estado
+        '''
+        retorna a estrutura do grafo a ser usada na classe Espaco_de_Estados
+        '''
         return grafo
 ```

@@ -6,5 +6,5 @@ if __name__ == '__main__':
     esp = Espaco_de_Estados(grafo)
 
     print(esp.get_cidades())
-    print(esp.visinhancas())
+    print(esp.get_visinhancas())
     print(esp.visinhancas_com_peso())
