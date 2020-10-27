@@ -1,6 +1,6 @@
 # Exercício prático - Agente de resolução de problemas - Parte 02
 
-### Alunos: Antonio Carlos Ramos filho, Fabiano Amaral Alves, Pablo Junio Souza Santos
+### Alunos: Antônio Carlos Ramos Filho, Fabiano Amaral Alves, Pablo Junio Souza Santos
 
 
 

@@ -1,3 +1,101 @@
+# Exercicio pratico - Agente de resolução de problemas - Parte 03
+
+## Alunos: Antônio Carlos Ramos Filho, Fabiano Amaral Alves, Pablo Junio Souza Santos
+
+### Formulação do Problema
+
+A representação de um problema consiste em um estado inicial, uma função ao qual se obtém os próximos estados possíveis a partir do estado atual e a definição de um estado objetivo em termos de um método Booleno que retornará `True` caso o estado atual seja o objetivo.
+
+Com base na definição acima, resolvemos por implementar a definição do problema das cidades da forma mais simples possível.
+
+Começamos por definir uma nova classe `Problema_Cidades` ao qual possui os atributos de cidade inicial `self.inicio` e a cidade objetivo `self.objetivo`, também possui métodos abstratos que serão sobrescritos na classe que herdará de `Problema_cidades`.
+
+~~~python
+# Arquivo: problema.py
+
+class Problema_Cidades(object):
+    '''
+    O problema de encontrar um caminho mais curto de uma cidade a outra.
+    '''
+
+    def __init__(self, c_inicio, c_objetivo):
+        '''
+        Define a cidade de partida e a cidade de destino.
+        '''
+        self.inicio = c_inicio
+        self.objetivo = c_objetivo
+
+    def acoes(self, estado):
+        '''
+        As ações em uma cidade corrente, é justamente as cidades vizinhas
+        '''
+        raise NotImplementedError
+
+    def verifica_objetivo(self, estado_atual):
+        '''
+        Se a cidade atual for justamente a mesma em self.objetivo, então 
+        o agente chegou em seu destino
+        '''
+        raise NotImplementedError
+~~~
+
+> Note que métodos como `custo_do_caminho` e `resultado` não foram implementados pois na classe `Espaco_de_Estados` existe métodos com a mesma função e o resultado de uma ação nesse problema é justamente está na cidade vizinha.
+
+Como já havíamos implementado algumas funções bastante úteis para formulação do problema na classe `Espaco_de_Estados`, optamos por modifica-la e torna-la filha da classe `Problema_Cidades`.
+Com isso, sobrescrevemos os métodos `acoes` e `verifica_objetivo` no corpo da classe `Espaco_de_Estados` aproveitando os métodos já existentes nela para implementar os sobrescritos.
+
+Vejamos agora o que foi alterado na classe `Espaco_de_Estados`:
+
+> Primeiro alteramos a herança da classe `object` para a classe `Problema_Cidades`.
+> Em seguida adicionamos mais dois parâmetros ao construtor para definir quais serão as cidades de inicio e cidade objetivo na formulação do problema.
+
+~~~python
+# Arquivo: espaco_estado.py
+from problema.problema import Problema_Cidades
+
+
+class Espaco_de_Estados(Problema_Cidades):
+
+    def __init__(self, inicio, objetivo ,grafo_estados = None):
+        '''
+        Essa classe tratará o espaço de estados como um dicionário \
+        onde receberá um dicionário, se nada for passado ao construtor \
+        será criado um dicionário vazio.
+        Caso contrario a classe receberá o grafo extraído do arquivo.
+        '''
+        super.__init__(inicio, objetivo)
+        if grafo_estados == None:
+            grafo_estados = {}
+        self.espaco_de_estados = grafo_estados
+~~~
+
+> Então sobrescrevemos os métodos da classe `Problema_Cidades`.
+
+```python
+    def verifica_objetivo(self, estado_atual):
+        if estado_atual == self.objetivo:
+            return True
+        return False
+
+    def acoes(self, estado_atual):
+        '''
+        Retorna os próximos estados acessíveis a partir do estado atual
+        '''
+        possiveis_estados = []
+        for l in self.get_vizinhancas():
+            for i, j in l:
+                if estado_atual == i:
+                    possiveis_estados.append(j)
+                if estado_atual == j:
+                    possiveis_estados.append(i)
+        return possiveis_estados
+```
+
+> Note que em `acoes` utilizamos o método `get_vizinhancas()` que é um método de `Espaco_de_Estados` que entrega uma lista de vizinhos para o método `acoes` que então recupera todos os vizinhos da cidade atual, retornando as em uma lista.
+
+A seguir a classe `Espaco_de_Estados` completa após a modificação.
+
+~~~python
 
 # Arquivo: espaco_estado.py
 from problema.problema import Problema_Cidades
@@ -87,7 +185,7 @@ class Espaco_de_Estados(Problema_Cidades):
         for cidade, vizinho in self.espaco_de_estados.items():
             for k in vizinho:
                 for c, p in k.items():
-                    if {c, cidade} not in borda:
+                    if (c, cidade) not in borda:
                         borda.append((cidade, c))
         return borda
 
@@ -101,7 +199,7 @@ class Espaco_de_Estados(Problema_Cidades):
         for cidade, vizinho in self.espaco_de_estados.items():
             for k in vizinho:
                 for c, p in k.items():
-                    if {c, cidade, p} not in borda:
+                    if (c, cidade, p) not in borda:
                         borda.append((cidade, c, p))
         return borda
 
@@ -175,3 +273,4 @@ class Espaco_de_Estados(Problema_Cidades):
         for arestas in self.monta_visinhanca():
             string += str(arestas) + ' '
         return string
+~~~
