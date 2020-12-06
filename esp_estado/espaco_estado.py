@@ -5,16 +5,14 @@ from problema.problema import Problema_Cidades
 
 class Espaco_de_Estados(Problema_Cidades):
 
-    def __init__(self, inicio, objetivo ,grafo_estados = None):
+    def __init__(self, inicio, objetivo ,grafo_estados):
         '''
         Essa classe tratará o espaço de estados como um dicionário \
         onde receberá um dicionário, se nada for passado ao construtor \
         será criado um dicionário vazio.
         Caso contrario a classe receberá o grafo extraido do arquivo.
         '''
-        super.__init__(inicio, objetivo)
-        if grafo_estados == None:
-            grafo_estados = {}
+        super().__init__(inicio, objetivo)
         self.espaco_de_estados = grafo_estados
 
     def verifica_objetivo(self, estado_atual):
@@ -155,6 +153,65 @@ class Espaco_de_Estados(Problema_Cidades):
                     if caminho_extendido:
                         return caminho_extendido
         return None
+
+
+    def busca_dls(self, inicio, fim, limite, caminho = None):
+
+        if caminho==None:
+            caminho = []
+
+        cidades = self.espaco_de_estados
+        caminho = caminho+[inicio]
+        if inicio == fim or limite <= 0:
+            return caminho
+        if inicio not in cidades:
+            return None
+
+
+        for cidade in cidades[inicio]:
+            for c in cidade.keys():
+                if c not in caminho:
+                    caminho_extendido = self.busca_dls(c, fim, limite-1, caminho)
+                    if caminho_extendido:
+                        return caminho_extendido
+        return None
+
+
+    def dls(self, limite):
+        profundidade=0
+        visitados = []
+        pilha = [self.inicio]
+        cidades = self.espaco_de_estados
+
+        if self.inicio == self.objetivo:
+            return "Inicio e objetivo são a mesma cidade"
+        if limite<=0:
+            return 'Valor para limite não permitido'
+
+        while pilha:
+            if profundidade <= limite:
+                cidade_atual = pilha.pop()
+                visitados.append(cidade_atual)
+                visinhos = cidades[cidade_atual]
+                for visinho in visinhos:
+                    for k in visinho.keys():
+                        if k not in visitados:
+                            if (self.verifica_objetivo(k)):
+                                visitados.append(k)
+                                return visitados
+                            pilha.append(k)
+            else:
+                return "Busca interrompida, O limite de profundidade foi atingido"
+            profundidade = profundidade+1
+        return None
+
+
+
+
+
+
+
+
 
     def __repr__(self):
         '''

@@ -3,7 +3,6 @@
 '''
 import os
 from collections import defaultdict
-from estado.estado import Estado
 
 class Arquivo:
 
@@ -36,37 +35,6 @@ class Arquivo:
                 grafo[cidade2].append({cidade1: int(custo)})
         # retorna a estrutura do grafo a ser usada na classe estado
         return grafo
-
-    # def desestruturar(dict):
-    #     for chave, valor in dict.items():
-    #         cidade = chave
-    #         list = []
-    #         tupla = tuple()
-    #         for k in valor:
-    #             dic = k
-    #             for key, value in dic.items():
-    #                 cidade1 = key
-    #                 peso = value
-    #                 tupla = (cidade1, peso)
-    #                 list.append(tupla)
-    #         e = Estado(cidade, list)
-    #         print(e)
-
-    def desestruturar(dict):
-        e = Estado()
-        for chave, valor in dict.items():
-            cidade = chave
-            list = []
-            tupla = tuple()
-            for k in valor:
-                dic = k
-                for key, value in dic.items():
-                    cidade1 = key
-                    peso = value
-                    tupla = (cidade1, peso)
-                    list.append(tupla)
-            e.nome = cidade
-            e.lista_estados = list
 
 
 if __name__ == '__main__':
